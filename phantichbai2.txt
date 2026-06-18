@@ -1,0 +1,273 @@
+1. Phân tích yêu cầu
+
+Hệ thống cần xây dựng một chương trình quản lý tài khoản Netflix theo mô hình hướng đối tượng (OOP). Mỗi người dùng khi đăng ký sẽ có một tài khoản chứa các thông tin như email, mật khẩu, gói cước và danh sách người xem (Profiles).
+
+Do đây đều là các dữ liệu quan trọng nên chương trình phải áp dụng Tính đóng gói (Encapsulation) để hạn chế việc truy cập hoặc chỉnh sửa trực tiếp từ bên ngoài. Ngoài ra, Netflix có những chính sách dùng chung cho toàn bộ hệ thống như số lượng Profile tối đa trên mỗi tài khoản, vì vậy cần sử dụng Class Attribute và Class Method để quản lý các dữ liệu này.
+
+Chương trình sẽ hoạt động trên giao diện CLI với các chức năng:
+
+Đăng ký tài khoản.
+Xem thông tin tài khoản.
+Thêm Profile.
+Nâng cấp gói cước.
+Thay đổi chính sách số lượng Profile.
+Thoát chương trình.
+2. Thiết kế lớp NetflixAccount
+2.1 Class Attributes
+platform_name = "Netflix"
+max_profiles = 5
+Giải thích
+
+Đây là thuộc tính của lớp (Class Attribute) nên mọi đối tượng đều sử dụng chung.
+
+platform_name lưu tên nền tảng.
+max_profiles quy định số lượng Profile tối đa của tất cả tài khoản.
+
+Ví dụ:
+
+account1 = NetflixAccount(...)
+account2 = NetflixAccount(...)
+
+Cả account1 và account2 đều dùng cùng giá trị max_profiles.
+
+Nếu Netflix thay đổi chính sách từ 5 lên 6 Profile thì chỉ cần cập nhật một lần, toàn bộ tài khoản sẽ áp dụng giới hạn mới.
+
+2.2 Instance Attributes
+self.email
+self.__password
+self.__plan
+self.profiles
+Giải thích
+
+Đây là các thuộc tính riêng của từng tài khoản.
+
+email lưu email đăng ký.
+__password lưu mật khẩu.
+__plan lưu gói cước.
+profiles là danh sách các Profile.
+
+Trong đó:
+
+__password
+__plan
+
+được khai báo bằng Name Mangling (__) để tạo thuộc tính private.
+
+Mục đích là ngăn chương trình bên ngoài truy cập hoặc thay đổi trực tiếp các dữ liệu nhạy cảm.
+
+Ví dụ:
+
+account.__password = "123456"
+
+không làm thay đổi mật khẩu thực tế của tài khoản.
+
+Điều này giúp tăng tính bảo mật.
+
+2.3 Constructor
+def __init__(self, email):
+Giải thích
+
+Constructor được gọi khi tạo đối tượng mới.
+
+Nó có nhiệm vụ:
+
+lưu email
+khởi tạo mật khẩu rỗng
+khởi tạo gói cước mặc định là "Basic"
+tạo danh sách Profile rỗng
+self.profiles = []
+
+Nhờ vậy mỗi tài khoản sẽ có danh sách Profile độc lập.
+
+3. Tính đóng gói (Encapsulation)
+3.1 Property password
+@property
+Giải thích
+
+Người dùng được phép xem thuộc tính password nhưng hệ thống sẽ không trả về mật khẩu thật.
+
+Thay vào đó:
+
+********
+
+được hiển thị.
+
+Ví dụ:
+
+print(account.password)
+
+Kết quả:
+
+********
+
+Điều này tránh việc lộ mật khẩu khi in thông tin tài khoản.
+
+3.2 Setter password
+@password.setter
+Giải thích
+
+Setter kiểm tra mật khẩu trước khi cập nhật.
+
+Điều kiện:
+
+Độ dài tối thiểu 6 ký tự.
+
+Nếu nhỏ hơn 6 ký tự:
+
+raise ValueError("Password is too short")
+
+Việc sử dụng raise giúp chuyển lỗi cho chương trình chính xử lý bằng try...except, thay vì làm chương trình bị dừng.
+
+3.3 Property plan
+@property
+Giải thích
+
+plan chỉ có getter.
+
+Điều này giúp người dùng chỉ được xem gói cước.
+
+Không thể sửa bằng:
+
+account.plan = "Premium"
+
+Muốn đổi gói phải gọi:
+
+upgrade_plan()
+
+Qua đó chương trình luôn kiểm soát được việc thay đổi gói cước.
+
+4. Static Method
+@staticmethod
+def validate_email(email):
+Giải thích
+
+Static Method dùng để kiểm tra định dạng email.
+
+Phương thức này:
+
+không sử dụng self
+không sử dụng cls
+
+Nó chỉ nhận chuỗi email và trả về:
+
+True
+
+hoặc
+
+False
+
+Điều kiện hợp lệ:
+
+Có ký tự @
+Có dấu .
+
+Ví dụ:
+
+NetflixAccount.validate_email("abc@gmail.com")
+
+Kết quả:
+
+True
+
+Ví dụ:
+
+NetflixAccount.validate_email("abcgmailcom")
+
+Kết quả:
+
+False
+5. Class Method
+@classmethod
+def update_max_profiles(cls, new_limit):
+Giải thích
+
+Class Method được sử dụng để thay đổi Class Attribute.
+
+Ví dụ:
+
+NetflixAccount.update_max_profiles(6)
+
+Sau khi gọi:
+
+NetflixAccount.max_profiles
+
+sẽ bằng:
+
+6
+
+Tất cả các tài khoản đang tồn tại đều sử dụng ngay giới hạn mới.
+
+Điều này rất phù hợp với nghiệp vụ khi Netflix thay đổi chính sách trên toàn cầu.
+
+6. Instance Methods
+add_profile()
+Giải thích
+
+Phương thức này thêm một Profile mới vào danh sách profiles.
+
+Trước khi thêm sẽ kiểm tra:
+
+len(self.profiles)
+
+Nếu đã đạt:
+
+NetflixAccount.max_profiles
+
+thì từ chối thêm và hiển thị thông báo lỗi.
+
+Nếu chưa đạt giới hạn thì thêm Profile vào danh sách.
+
+upgrade_plan()
+Giải thích
+
+Đây là phương thức duy nhất được phép thay đổi gói cước.
+
+Chỉ chấp nhận ba giá trị:
+
+Basic
+Standard
+Premium
+
+Nếu nhập giá trị khác thì hệ thống từ chối cập nhật.
+
+Việc không cho phép sửa trực tiếp __plan giúp đảm bảo dữ liệu luôn hợp lệ.
+
+display_info()
+Giải thích
+
+Phương thức này hiển thị toàn bộ thông tin của tài khoản gồm:
+
+Email
+Mật khẩu đã được che (********)
+Gói cước hiện tại
+Danh sách Profile
+
+Lưu ý, khi hiển thị mật khẩu, chương trình sử dụng @property password nên người dùng sẽ không bao giờ nhìn thấy mật khẩu thật.
+
+7. Tại sao phải sử dụng OOP?
+
+Nếu sử dụng dictionary:
+
+account = {
+    "password": "123456",
+    "plan": "Premium"
+}
+
+bất kỳ đoạn code nào cũng có thể sửa:
+
+account["plan"] = "VIP"
+
+hoặc đọc trực tiếp:
+
+print(account["password"])
+
+Điều này gây mất an toàn dữ liệu.
+
+Khi áp dụng OOP:
+
+Mật khẩu và gói cước được bảo vệ bằng Name Mangling (__).
+Mật khẩu chỉ hiển thị dưới dạng ******** thông qua @property.
+Gói cước chỉ có thể thay đổi bằng upgrade_plan().
+Chính sách giới hạn Profile được quản lý tập trung bằng Class Attribute và Class Method.
+
+Nhờ đó chương trình có tính bảo mật cao hơn, dễ bảo trì và dễ mở rộng khi hệ thống Netflix thay đổi chính sách trong tương lai.
